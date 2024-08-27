@@ -1,0 +1,3 @@
+[submodule "external/math_cpp"]
+    path = external/math_cpp
+    url = https://github.com/w1vern/math_cpp
