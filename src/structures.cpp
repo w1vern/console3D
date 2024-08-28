@@ -6,7 +6,40 @@
 
 // Triangle
 
-Triangle::Triangle(mth::Vector3 v1, mth::Vector3 v2, mth::Vector3 v3) : v1(v1), v2(v2), v3(v3) {}
+Triangle::Triangle(mth::Vector3 v1, mth::Vector3 v2, mth::Vector3 v3)
+{
+    vertices[0] = v1;
+    vertices[1] = v2;
+    vertices[2] = v3;
+
+    n = (vertices[0] - vertices[1]) ^ (vertices[0] - vertices[2]);
+    n /= n.length();
+
+    A = n.getX();
+	B = n.getY();
+	C = n.getZ();
+	D = -(A * vertices[0].getX() + B * vertices[0].getY() + C * vertices[0].getZ());
+
+    AB = vertices[1] - vertices[0];
+    BC = vertices[1] - vertices[2];
+    CA = vertices[2] - vertices[0];
+
+    nAB = AB ^ n;
+	nBC = BC ^ n;
+	nCA = CA ^ n;
+
+    mAB = (vertices[0] + vertices[1]) / 2;
+	mBC = (vertices[2] + vertices[0]) / 2;
+	mCA = (vertices[1] + vertices[2]) / 2;
+
+    lAB = AB.length();
+	lCA = CA.length();
+	lBC = BC.length();
+
+    float p = (lAB + lCA + lBC) / 2;
+
+    S = sqrt(p * (p - lAB) * (p - lCA) * (p - lBC));
+}
 
 // Location
 
@@ -43,7 +76,7 @@ void Camera::compute_rays()
 
 // Global_params
 
-void Global_params::reinterpret_size()
+void Global_params::reinterpret_console_size()
 {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);

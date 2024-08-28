@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <set>
+#include <mutex>
 #include <include/vector3.h>
 
 enum Moveset
@@ -22,10 +23,29 @@ class Triangle
 public:
     Triangle(mth::Vector3 v1, mth::Vector3 v2, mth::Vector3 v3);
 
-private:
-    mth::Vector3 v1;
-    mth::Vector3 v2;
-    mth::Vector3 v3;
+    float A;
+    float B;
+    float C;
+    float D;
+
+    float aABC;
+    float aACB;
+    float aBAC;
+
+    float lAB;
+    float lCA;
+    float lBC;
+
+    float S;
+
+    mth::Vector3 AB, CA, BC;
+
+    mth::Vector3 nAB, nCA, nBC;
+
+    mth::Vector3 mAB, mBC, mCA;
+
+    mth::Vector3 vertices[3];
+    mth::Vector3 n;
 };
 
 class Location
@@ -70,21 +90,22 @@ private:
 class Global_params
 {
 public:
-    static void reinterpret_size();
+    static void reinterpret_console_size();
     static std::uint8_t width;
     static std::uint8_t height;
     static std::uint16_t count_of_pixels;
 
     static std::set<Moveset> current_moves;
+    static std::mutex input_mutex;
 
     static const char gradient[];
     static const uint8_t gradient_size;
-	static const double fov;
-	static const uint32_t frame_rate;
-	static const uint32_t frame_time;
-	static const double attenuation;
-	static const double speed_of_moving;
-	static const double speed_of_rotate;
+    static const double fov;
+    static const uint32_t frame_rate;
+    static const uint32_t frame_time;
+    static const double attenuation;
+    static const double speed_of_moving;
+    static const double speed_of_rotate;
 
 private:
     Global_params();
