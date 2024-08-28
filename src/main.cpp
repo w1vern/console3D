@@ -16,7 +16,7 @@ int main()
 	clean_console(console_handle, true);
     Sleep(3000);
 
-    Console::reinterpret_size();
+    Global_params::reinterpret_size();
 
 
 

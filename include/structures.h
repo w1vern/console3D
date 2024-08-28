@@ -3,7 +3,8 @@
 #include <set>
 #include <include/vector3.h>
 
-enum Moveset {
+enum Moveset
+{
     step_forward,
     step_back,
     step_left,
@@ -30,26 +31,28 @@ private:
 class Location
 {
 public:
-    Location &get_instance();
-    void add_triangle(const Triangle &triangle);
+    static void add_triangle(Triangle triangle);
 
 private:
     Location();
-    std::vector<Triangle> polygons;
+    static std::vector<Triangle> polygons;
 };
 
 class Ray
 {
+    friend class Camera;
+
 public:
-    void compute(const Location &location);
+    Ray(mth::Vector3 direction);
+    void compute_collisions();
     mth::Vector3 get_touch_coord();
-    float get_bright_level();
+    double get_bright_level();
     bool is_touch();
 
 private:
     mth::Vector3 direction;
     std::vector<mth::Vector3> points_of_touch;
-    float bright_level;
+    double bright_level;
     mth::Vector3 point_of_touch;
     bool touch;
 };
@@ -57,17 +60,14 @@ private:
 class Camera
 {
 public:
-    Camera &get_instance();
-    void compute_rays();
+    static void compute_rays();
+
 private:
     Camera();
-    std::vector<Ray> rays;
-    float yaw;
-    float pitch;
-    float roll;
+    static std::vector<Ray> rays;
 };
 
-class Console
+class Global_params
 {
 public:
     static void reinterpret_size();
@@ -77,6 +77,15 @@ public:
 
     static std::set<Moveset> current_moves;
 
+    static const char gradient[];
+    static const uint8_t gradient_size;
+	static const double fov;
+	static const uint32_t frame_rate;
+	static const uint32_t frame_time;
+	static const double attenuation;
+	static const double speed_of_moving;
+	static const double speed_of_rotate;
+
 private:
-    Console();
+    Global_params();
 };
