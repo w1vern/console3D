@@ -2,7 +2,7 @@
 #include <vector>
 #include <set>
 #include <mutex>
-#include "../external/math_cpp/include/math_cpp.h"
+#include <math_cpp.h>
 
 enum Moveset
 {
@@ -68,11 +68,11 @@ class Ray
 public:
     Ray(mth::Vector3 direction);
     void compute_collisions();
-    std::uint8_t get_bright_level();
+    std::uint16_t get_bright_level();
 
 private:
     mth::Vector3 direction;
-    std::uint8_t bright_level;
+    std::uint16_t bright_level;
     mth::Vector3 point_of_touch;
     bool touch;
 };
@@ -93,15 +93,15 @@ class Global_params
 {
 public:
     static void reinterpret_console_size();
-    static std::uint8_t width;
-    static std::uint8_t height;
-    static std::uint16_t count_of_pixels;
+    static std::uint16_t width;
+    static std::uint16_t height;
+    static std::uint32_t count_of_pixels;
 
     static std::set<Moveset> current_moves;
     static std::mutex input_mutex;
 
     static const char gradient[];
-    static const uint8_t gradient_size;
+    static const uint16_t gradient_size;
     static const double fov;
     static const uint32_t frame_rate;
     static const uint32_t frame_time;

@@ -1,6 +1,5 @@
-
-#include "../include/structures.h"
-#include "../include/input.h"
+#include <structures.h>
+#include <input.h>
 
 #include <Windows.h>
 
@@ -26,35 +25,35 @@ void update_input_state()
         {
             Global_params::current_moves.insert(Moveset::pitch_minus);
         }
-        if (GetAsyncKeyState('w') & 0x8000)
+        if (GetAsyncKeyState('W') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::step_forward);
         }
-        if (GetAsyncKeyState('a') & 0x8000)
+        if (GetAsyncKeyState('A') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::step_left);
         }
-        if (GetAsyncKeyState('s') & 0x8000)
+        if (GetAsyncKeyState('S') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::step_back);
         }
-        if (GetAsyncKeyState('d') & 0x8000)
+        if (GetAsyncKeyState('D') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::step_right);
         }
-        if (GetAsyncKeyState('q') & 0x8000)
+        if (GetAsyncKeyState('Q') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::step_up);
         }
-        if (GetAsyncKeyState('e') & 0x8000)
+        if (GetAsyncKeyState('E') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::step_down);
         }
-        if (GetAsyncKeyState('r') & 0x8000)
+        if (GetAsyncKeyState('R') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::roll_minus);
         }
-        if (GetAsyncKeyState('f') & 0x8000)
+        if (GetAsyncKeyState('F') & 0x8000)
         {
             Global_params::current_moves.insert(Moveset::roll_plus);
         }
