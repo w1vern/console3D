@@ -1,6 +1,6 @@
 
-#include "input.h"
-#include "structures.h"
+#include "../include/structures.h"
+#include "../include/input.h"
 
 #include <Windows.h>
 

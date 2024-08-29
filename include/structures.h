@@ -2,7 +2,7 @@
 #include <vector>
 #include <set>
 #include <mutex>
-#include <include/vector3.h>
+#include "../external/math_cpp/include/math_cpp.h"
 
 enum Moveset
 {

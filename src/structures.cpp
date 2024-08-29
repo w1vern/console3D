@@ -1,8 +1,7 @@
-#include "structures.h"
+#include "../include/structures.h"
 
 #include <Windows.h>
-
-#include <include/math_cpp.h>
+#include <cmath>
 
 // Triangle
 
@@ -57,36 +56,36 @@ void Location::compute_polygons()
     {
         double move_roll = roll, move_pitch = pitch, move_yaw = yaw;
         bool is_move = false;
-        if (Global_params::current_moves.contains(step_forward))
+        if (Global_params::current_moves.count(step_forward))
         {
             Global_params::current_moves.erase(step_forward);
             bool is_move = true;
         }
-        if (Global_params::current_moves.contains(step_back))
+        if (Global_params::current_moves.count(step_back))
         {
             Global_params::current_moves.erase(step_back);
             move_yaw += 180;
             bool is_move = true;
         }
-        if (Global_params::current_moves.contains(step_left))
+        if (Global_params::current_moves.count(step_left))
         {
             Global_params::current_moves.erase(step_left);
             move_yaw -= 90;
             bool is_move = true;
         }
-        if (Global_params::current_moves.contains(step_right))
+        if (Global_params::current_moves.count(step_right))
         {
             Global_params::current_moves.erase(step_right);
             move_yaw += 90;
             bool is_move = true;
         }
-        if (Global_params::current_moves.contains(step_up))
+        if (Global_params::current_moves.count(step_up))
         {
             Global_params::current_moves.erase(step_up);
             move_pitch -= 90;
             bool is_move = true;
         }
-        if (Global_params::current_moves.contains(step_down))
+        if (Global_params::current_moves.count(step_down))
         {
             Global_params::current_moves.erase(step_down);
             move_pitch += 90;
@@ -99,12 +98,12 @@ void Location::compute_polygons()
         }
         if (!Global_params::current_moves.empty())
         {
-            roll -= (Global_params::current_moves.contains(roll_minus)) * Global_params::speed_of_rotate;
-            roll += (Global_params::current_moves.contains(roll_plus)) * Global_params::speed_of_rotate;
-            pitch -= (Global_params::current_moves.contains(pitch_minus)) * Global_params::speed_of_rotate;
-            pitch += (Global_params::current_moves.contains(pitch_plus)) * Global_params::speed_of_rotate;
-            pitch -= (Global_params::current_moves.contains(yaw_minus)) * Global_params::speed_of_rotate;
-            pitch += (Global_params::current_moves.contains(yaw_plus)) * Global_params::speed_of_rotate;
+            roll -= (Global_params::current_moves.count(roll_minus)) * Global_params::speed_of_rotate;
+            roll += (Global_params::current_moves.count(roll_plus)) * Global_params::speed_of_rotate;
+            pitch -= (Global_params::current_moves.count(pitch_minus)) * Global_params::speed_of_rotate;
+            pitch += (Global_params::current_moves.count(pitch_plus)) * Global_params::speed_of_rotate;
+            pitch -= (Global_params::current_moves.count(yaw_minus)) * Global_params::speed_of_rotate;
+            pitch += (Global_params::current_moves.count(yaw_plus)) * Global_params::speed_of_rotate;
             Global_params::current_moves.clear();
         }
     }
@@ -127,12 +126,17 @@ void Location::compute_polygons()
     old_polygons = computed_polygons;
 }
 
+std::vector<Triangle> Location::origin_polygons;
+std::vector<Triangle> Location::old_polygons;
+std::vector<Triangle> Location::computed_polygons;
+
 // Ray
 
 Ray::Ray(mth::Vector3 direction) : direction(direction) {}
 
 void Ray::compute_collisions()
 {
+    bright_level = 0;
     std::vector<mth::Vector3> points_of_touch;
     std::vector<double> lengths;
     for (Triangle triangle : Location::computed_polygons)
@@ -188,6 +192,8 @@ std::uint8_t Ray::get_bright_level()
     return bright_level;
 }
 
+std::vector<Ray> Camera::rays;
+
 // Camera
 
 void Camera::compute_rays()
@@ -199,7 +205,7 @@ void Camera::compute_rays()
         for (std::uint8_t j = 0; j < Global_params::width; ++j)
         {
             double horizontal_angle = Global_params::fov * ((double)j / Global_params::width - 0.5);
-            mth::Vector3 tmp_ray(mth::cos(horizontal_angle), mth::sin(horizontal_angle), cos(vertical_angle));
+            mth::Vector3 tmp_ray(mth::cos(horizontal_angle), mth::sin(horizontal_angle), mth::cos(vertical_angle));
             tmp_ray /= tmp_ray.length();
             Camera::rays.push_back(Ray(tmp_ray));
         }
@@ -209,7 +215,7 @@ void Camera::compute_rays()
 void Camera::draw_polygons(char* display_buffer)
 {
     for (std::uint16_t i = 0;i<Global_params::count_of_pixels;++i)
-        display_buffer[i] = gradient[rays[i].get_bright_level()];
+        display_buffer[i] = Global_params::gradient[rays[i].get_bright_level()];
 }
 
 // Global_params
@@ -223,13 +229,20 @@ void Global_params::reinterpret_console_size()
     Global_params::count_of_pixels = Global_params::width * Global_params::height;
 }
 
-const char gradient[] = " .:!/r(l1Z4H9W8$@";
-const uint8_t gradient_size = sizeof(gradient);
-const double fov = 103;
-const uint32_t frame_rate = 120;
-const uint32_t frame_time = 1000 / frame_rate;
-const double attenuation = 0.1;
-const double speed_of_moving = 0.1;
-const double speed_of_rotate = 1.;
+std::uint8_t Global_params::width;
+std::uint8_t Global_params::height;
+std::uint16_t Global_params::count_of_pixels;
+
+std::set<Moveset> Global_params::current_moves;
+std::mutex Global_params::input_mutex;
+
+const char Global_params::gradient[] = " .:!/r(l1Z4H9W8$@";
+const uint8_t Global_params::gradient_size = sizeof(Global_params::gradient);
+const double Global_params::fov = 103;
+const uint32_t Global_params::frame_rate = 120;
+const uint32_t Global_params::frame_time = 1000 / frame_rate;
+const double Global_params::attenuation = 0.1;
+const double Global_params::speed_of_moving = 0.1;
+const double Global_params::speed_of_rotate = 1.;
 
 //

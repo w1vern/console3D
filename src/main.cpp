@@ -6,11 +6,11 @@
 #include <Windows.h>
 #include <conio.h>
 
-#include <include/clean_console.h>
-#include <include/math_cpp.h>
+#include "../external/clean_console/include/clean_console.h"
+#include "../external/math_cpp/include/math_cpp.h"
 
-#include "structures.h"
-#include "input.h"
+#include "../include/structures.h"
+#include "../include/input.h"
 
 int main()
 {
@@ -19,12 +19,15 @@ int main()
     Sleep(3000);
 
     Global_params::reinterpret_console_size();
+    std::cout << Global_params::height << '\t' << Global_params::width;
     Camera::compute_rays();
 
     std::thread input_thread(update_input_state);
 
     clock_t start_time, finish_time;
     char *display_buffer = new char[Global_params::count_of_pixels + 1];
+    for(int i = 0;i<Global_params::count_of_pixels;++i)
+        display_buffer[i] = ' ';
     display_buffer[Global_params::count_of_pixels] = '\0';
     bool game_cycle = true;
 
