@@ -4,7 +4,13 @@ set (PROJECT_NAME console3D)
 
 project(${PROJECT_NAME})
 
-add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR/src/main.cpp})
+add_executable(${PROJECT_NAME} 
+${CMAKE_SOURCE_DIR}/src/main.cpp
+${CMAKE_SOURCE_DIR}/src/input.cpp 
+${CMAKE_SOURCE_DIR}/include/input.h 
+${CMAKE_SOURCE_DIR}/src/structures.cpp
+${CMAKE_SOURCE_DIR}/include/structures.h
+)
 
 add_subdirectory(external/math_cpp)
 target_link_libraries(${PROJECT_NAME} math_cpp)

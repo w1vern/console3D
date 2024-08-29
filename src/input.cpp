@@ -42,6 +42,22 @@ void update_input_state()
         {
             Global_params::current_moves.insert(Moveset::step_right);
         }
+        if (GetAsyncKeyState('q') & 0x8000)
+        {
+            Global_params::current_moves.insert(Moveset::step_up);
+        }
+        if (GetAsyncKeyState('e') & 0x8000)
+        {
+            Global_params::current_moves.insert(Moveset::step_down);
+        }
+        if (GetAsyncKeyState('r') & 0x8000)
+        {
+            Global_params::current_moves.insert(Moveset::roll_minus);
+        }
+        if (GetAsyncKeyState('f') & 0x8000)
+        {
+            Global_params::current_moves.insert(Moveset::roll_plus);
+        }
         Global_params::input_mutex.unlock();
     }
 }

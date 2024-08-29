@@ -10,6 +10,8 @@ enum Moveset
     step_back,
     step_left,
     step_right,
+    step_up,
+    step_down,
     yaw_plus,
     yaw_minus,
     pitch_plus,
@@ -50,37 +52,37 @@ public:
 
 class Location
 {
+    friend class Ray;
 public:
     static void add_triangle(Triangle triangle);
-
+    static void compute_polygons();
 private:
     Location();
-    static std::vector<Triangle> polygons;
+    static std::vector<Triangle> origin_polygons;
+    static std::vector<Triangle> computed_polygons;
+    static std::vector<Triangle> old_polygons;
 };
 
 class Ray
 {
-    friend class Camera;
-
 public:
     Ray(mth::Vector3 direction);
     void compute_collisions();
-    mth::Vector3 get_touch_coord();
-    double get_bright_level();
-    bool is_touch();
+    std::uint8_t get_bright_level();
 
 private:
     mth::Vector3 direction;
-    std::vector<mth::Vector3> points_of_touch;
-    double bright_level;
+    std::uint8_t bright_level;
     mth::Vector3 point_of_touch;
     bool touch;
 };
 
 class Camera
 {
+friend int main();
 public:
     static void compute_rays();
+    static void draw_polygons(char*);
 
 private:
     Camera();
