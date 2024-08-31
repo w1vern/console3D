@@ -13,6 +13,9 @@ Triangle::Triangle(mth::Vector3 v1, mth::Vector3 v2, mth::Vector3 v3)
 
 	n = (vertices[0] - vertices[1]) ^ (vertices[0] - vertices[2]);
 	n /= n.length();
+	n_to_camera = n;
+	if (n_to_camera * -vertices[0] < 0)
+		n_to_camera *= -1;
 
 	A = n.x();
 	B = n.y();
@@ -20,16 +23,16 @@ Triangle::Triangle(mth::Vector3 v1, mth::Vector3 v2, mth::Vector3 v3)
 	D = -(A * vertices[0].x() + B * vertices[0].y() + C * vertices[0].z());
 
 	AB = vertices[1] - vertices[0];
-	BC = vertices[1] - vertices[2];
-	CA = vertices[2] - vertices[0];
+	BC = vertices[2] - vertices[1];
+	CA = vertices[0] - vertices[2];
 
 	nAB = AB ^ n;
 	nBC = BC ^ n;
 	nCA = CA ^ n;
 
 	mAB = (vertices[0] + vertices[1]) / 2;
-	mBC = (vertices[2] + vertices[0]) / 2;
-	mCA = (vertices[1] + vertices[2]) / 2;
+	mBC = (vertices[2] + vertices[1]) / 2;
+	mCA = (vertices[0] + vertices[2]) / 2;
 
 	lAB = AB.length();
 	lCA = CA.length();
@@ -40,12 +43,26 @@ Triangle::Triangle(mth::Vector3 v1, mth::Vector3 v2, mth::Vector3 v3)
 	S = sqrt(p * (p - lAB) * (p - lCA) * (p - lBC));
 }
 
+// Light_source
+
+Light_source::Light_source(mth::Vector3 pos, double bright_level) : position(pos), bright_level(bright_level) {}
+
 // Location
 
-void Location::add_triangle(Triangle triangle)
+void Location::add_polygon(Triangle triangle)
 {
 	Location::origin_polygons.push_back(triangle);
 	Location::old_polygons.push_back(triangle);
+}
+
+void Location::add_light_source(Light_source ls)
+{
+	Location::light_sources.push_back(ls);
+}
+
+std::uint64_t Location::count_of_polygons()
+{
+	return origin_polygons.size();
 }
 
 void Location::compute_polygons()
@@ -116,9 +133,12 @@ void Location::compute_polygons()
 		}
 		computed_polygons.push_back(Triangle(vertices[0].to_vector3() + move, vertices[1].to_vector3() + move, vertices[2].to_vector3() + move));
 	}
+	for (std::uint64_t i = 0; i < Location::light_sources.size(); ++i)
+		Location::light_sources[i].position = (Location::light_sources[i].position.to_matrix() * rotate).to_vector3();
 	old_polygons = computed_polygons;
 }
 
+std::vector<Light_source> Location::light_sources;
 std::vector<Triangle> Location::origin_polygons;
 std::vector<Triangle> Location::old_polygons;
 std::vector<Triangle> Location::computed_polygons;
@@ -129,6 +149,7 @@ Ray::Ray(mth::Vector3 direction) : direction(direction) {}
 
 void Ray::compute_collisions()
 {
+	std::vector<Triangle> tmp_triangles;
 	bright_level = 0;
 	std::vector<mth::Vector3> points_of_touch;
 	std::vector<double> lengths;
@@ -136,15 +157,15 @@ void Ray::compute_collisions()
 	{
 		if (abs(direction * triangle.n) < 0.001)
 			continue;
-		double z = -triangle.D / ((triangle.A * direction.x() + triangle.B * direction.y()) / direction.z() + triangle.C);
-		double x = z * direction.x() / direction.z();
-		double y = z * direction.y() / direction.z();
+		double x = -triangle.D / ((triangle.C * direction.z() + triangle.B * direction.y()) / direction.x() + triangle.A);
+		double z = x * direction.z() / direction.x();
+		double y = x * direction.y() / direction.x();
 
 		mth::Vector3 tmp{x, y, z};
 		if (tmp * direction < 0)
 			continue;
 
-		double a1 = (triangle.vertices[0] - tmp).length(), a2 = (triangle.vertices[1] - tmp).length(), a3 = triangle.lAB;
+		/*double a1 = (triangle.vertices[0] - tmp).length(), a2 = (triangle.vertices[1] - tmp).length(), a3 = triangle.lAB;
 		double b1 = a2, b2 = (triangle.vertices[2] - tmp).length(), b3 = triangle.lBC;
 		double c1 = b2, c2 = a1, c3 = triangle.lCA;
 
@@ -157,17 +178,41 @@ void Ray::compute_collisions()
 		double s3 = sqrt(p3 * (p3 - c1) * (p3 - c2) * (p3 - c3));
 
 		if (s1 + s2 + s3 - 0.01 > triangle.S)
+			continue;*/
+
+		mth::Vector3 testAB = tmp - triangle.mAB;
+		mth::Vector3 testBC = tmp - triangle.mBC;
+		mth::Vector3 testCA = tmp - triangle.mCA;
+
+		if (!((testAB * triangle.nAB < 0) && (testBC * triangle.nBC < 0) && (testCA * triangle.nCA < 0)))
 			continue;
+
+		/*float a1 = (triangle.vertices[0] - tmp) * (triangle.vertices[1] - triangle.vertices[0]);
+		float a2 = (triangle.vertices[1] - tmp) * (triangle.vertices[2] - triangle.vertices[1]);
+		float a3 = (triangle.vertices[2] - tmp) * (triangle.vertices[0] - triangle.vertices[2]);
+
+		if (!(a1 > 0 && a2 > 0 && a3 > 0 || a1 < 0 && a2 < 0 && a3 < 0))
+			continue;*/
+
+		/*mth::Vector3 testA = tmp - triangle.vertices[0],
+					 testB = tmp - triangle.vertices[1],
+					 testC = tmp - triangle.vertices[2];
+
+		float lenghtA = testA.length(), lenghtB = testB.length(), lenghtC = testC.length();
+
+		float aAtB = acos((lenghtA * lenghtA + lenghtB * lenghtB - triangle.lAB * triangle.lAB) / (2 * lenghtA * lenghtB));
+		float aAtC = acos((lenghtA * lenghtA + lenghtC * lenghtC - triangle.lCA * triangle.lCA) / (2 * lenghtA * lenghtC));
+		float aBtC = acos((lenghtB * lenghtB + lenghtC * lenghtC - triangle.lBC * triangle.lBC) / (2 * lenghtB * lenghtC));
+
+		if (aAtB + aAtC + aBtC < 2 * 3.14)
+			continue;*/
 
 		points_of_touch.push_back(tmp);
 		lengths.push_back(tmp.length());
+		tmp_triangles.push_back(triangle);
 	}
 	if (!(lengths.size()))
-	{
-		bright_level = 0;
 		return;
-	}
-	touch = true;
 	std::uint32_t index_of_min = 0;
 	double r = lengths[0];
 	for (std::uint32_t i = 1; i < lengths.size(); ++i)
@@ -175,9 +220,27 @@ void Ray::compute_collisions()
 			index_of_min = i;
 	point_of_touch = points_of_touch[index_of_min];
 
-	bright_level = Global_params::gradient_size - 1 - pow(point_of_touch.length(), 2) * Global_params::attenuation;
+	double brightness = 0;
+	double angle_between_ray_and_n = mth::arccos(-point_of_touch * tmp_triangles[index_of_min].n / point_of_touch.length() / tmp_triangles[index_of_min].n.length());
+	for (auto source : Location::light_sources)
+	{
+		if ((source.position - point_of_touch) * tmp_triangles[index_of_min].n_to_camera <= 0)
+			continue;
+		double angle_between_light_source_and_ray = mth::arccos(-point_of_touch * (source.position - point_of_touch) / point_of_touch.length() / (point_of_touch - source.position).length());
+		brightness += (mth::cos((abs(angle_between_light_source_and_ray / 2 - angle_between_ray_and_n)))) * source.bright_level * 0.1;
+	}
 
-	bright_level = (bright_level > 0) ? bright_level : 1;
+	if (brightness < 0)
+		brightness = 0;
+	if (brightness > 1)
+		brightness = 1;
+	brightness *= Global_params::gradient_size - 1;
+	bright_level = (brightness > 1) ? brightness : 1;
+	/*bright_level = Global_params::gradient_size - 1 - pow(point_of_touch.length(), 2) * Global_params::attenuation;
+
+	bright_level = (bright_level > Global_params::gradient_size-1) ? 1 : bright_level;
+
+	bright_level = (bright_level > 0) ? bright_level : 1;*/
 }
 
 std::uint16_t Ray::get_bright_level()
@@ -202,7 +265,7 @@ void Camera::compute_rays()
 			mth::Matrix y_rotate{3, 3, {mth::cos(horizontal_angle), 0, mth::sin(horizontal_angle), 0, 1, 0, -mth::sin(horizontal_angle), 0, mth::cos(horizontal_angle)}};
 			mth::Matrix z_rotate{3, 3, {mth::cos(vertical_angle), -mth::sin(vertical_angle), 0, mth::sin(vertical_angle), mth::cos(vertical_angle), 0, 0, 0, 1}};
 			mth::Matrix tmp_matrix = forward * z_rotate * y_rotate;
-			mth::Vector3 tmp_ray{tmp_matrix.el_by_index(0, 0), tmp_matrix.el_by_index(0, 1), tmp_matrix.el_by_index(0, 2)};
+			mth::Vector3 tmp_ray = tmp_matrix.to_vector3();
 			tmp_ray /= tmp_ray.length();
 			Camera::rays.push_back(Ray(tmp_ray));
 		}
@@ -233,13 +296,13 @@ std::uint32_t Global_params::count_of_pixels;
 std::set<Moveset> Global_params::current_moves;
 std::mutex Global_params::input_mutex;
 
-const char Global_params::gradient[] = " .:!/r(l1Z4H9W8$@";
-const uint16_t Global_params::gradient_size = sizeof(Global_params::gradient);
+const char Global_params::gradient[] = " .`-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+const uint16_t Global_params::gradient_size = sizeof(Global_params::gradient) - 1;
 const double Global_params::fov = 103;
 const uint32_t Global_params::frame_rate = 120;
 const uint32_t Global_params::frame_time = 1000 / frame_rate;
-const double Global_params::attenuation = 0.1;
+const double Global_params::attenuation = 0.2;
 const double Global_params::speed_of_moving = 0.05;
-const double Global_params::speed_of_rotate = 0.5;
+const double Global_params::speed_of_rotate = 0.7;
 
 //

@@ -48,16 +48,31 @@ public:
 
     mth::Vector3 vertices[3];
     mth::Vector3 n;
+    mth::Vector3 n_to_camera;
+};
+
+class Light_source
+{
+
+public:
+    Light_source(mth::Vector3 pos, double bright_level);
+    mth::Vector3 position;
+    double bright_level;
 };
 
 class Location
 {
     friend class Ray;
+
 public:
-    static void add_triangle(Triangle triangle);
+    static void add_polygon(Triangle triangle);
+    static void add_light_source(Light_source ls);
     static void compute_polygons();
+    static std::uint64_t count_of_polygons();
+
 private:
     Location();
+    static std::vector<Light_source> light_sources;
     static std::vector<Triangle> origin_polygons;
     static std::vector<Triangle> computed_polygons;
     static std::vector<Triangle> old_polygons;
@@ -79,10 +94,11 @@ private:
 
 class Camera
 {
-friend int main();
+    friend int main();
+
 public:
     static void compute_rays();
-    static void draw_polygons(char*);
+    static void draw_polygons(char *);
 
 private:
     Camera();
