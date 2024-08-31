@@ -221,13 +221,16 @@ void Ray::compute_collisions()
 	point_of_touch = points_of_touch[index_of_min];
 
 	double brightness = 0;
-	double angle_between_ray_and_n = mth::arccos(-point_of_touch * tmp_triangles[index_of_min].n / point_of_touch.length() / tmp_triangles[index_of_min].n.length());
+	mth::Vector3 vector_of_tracing = point_of_touch - tmp_triangles[index_of_min].n_to_camera * (2 * (point_of_touch * tmp_triangles[index_of_min].n_to_camera));
+	vector_of_tracing /= vector_of_tracing.length();
 	for (auto source : Location::light_sources)
 	{
-		if ((source.position - point_of_touch) * tmp_triangles[index_of_min].n_to_camera <= 0)
+		mth::Vector3 vector_of_source_ray = source.position - point_of_touch;
+		vector_of_source_ray /= vector_of_source_ray.length();
+		if (vector_of_source_ray * tmp_triangles[index_of_min].n_to_camera <= 0)
 			continue;
-		double angle_between_light_source_and_ray = mth::arccos(-point_of_touch * (source.position - point_of_touch) / point_of_touch.length() / (point_of_touch - source.position).length());
-		brightness += (mth::cos((abs(angle_between_light_source_and_ray / 2 - angle_between_ray_and_n)))) * source.bright_level * 0.1;
+
+		brightness += vector_of_tracing * vector_of_source_ray * 0.5 + 0.5;
 	}
 
 	if (brightness < 0)
@@ -296,7 +299,7 @@ std::uint32_t Global_params::count_of_pixels;
 std::set<Moveset> Global_params::current_moves;
 std::mutex Global_params::input_mutex;
 
-const char Global_params::gradient[] = " .`-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+const char Global_params::gradient[] = " .:!/r(l1Z4H9W8$@";
 const uint16_t Global_params::gradient_size = sizeof(Global_params::gradient) - 1;
 const double Global_params::fov = 103;
 const uint32_t Global_params::frame_rate = 120;
