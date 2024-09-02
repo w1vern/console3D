@@ -123,7 +123,7 @@ void Location::compute_polygons()
 	mth::Matrix yaw_rotate(3, 3, {mth::cos(yaw), 0, mth::sin(yaw), 0, 1, 0, -mth::sin(yaw), 0, mth::cos(yaw)});
 	mth::Matrix roll_rotate(3, 3, {mth::cos(roll), -mth::sin(roll), 0, mth::sin(roll), mth::cos(roll), 0, 0, 0, 1});
 	mth::Matrix rotate = roll_rotate * yaw_rotate * pitch_rotate;
-	for (Triangle origin : old_polygons)
+	for (Triangle& origin : old_polygons)
 	{
 		mth::Matrix vertices[3];
 		for (std::uint16_t i = 0; i < 3; ++i)
@@ -145,6 +145,8 @@ std::vector<Triangle> Location::computed_polygons;
 
 // Ray
 
+Ray::Ray() : direction(mth::Vector3(0, 0, 0)) {}
+
 Ray::Ray(mth::Vector3 direction) : direction(direction) {}
 
 void Ray::compute_collisions()
@@ -153,7 +155,7 @@ void Ray::compute_collisions()
 	bright_level = 0;
 	std::vector<mth::Vector3> points_of_touch;
 	std::vector<double> lengths;
-	for (Triangle triangle : Location::computed_polygons)
+	for (Triangle& triangle : Location::computed_polygons)
 	{
 		if (abs(direction * triangle.n) < 0.001)
 			continue;
@@ -223,7 +225,7 @@ void Ray::compute_collisions()
 	double brightness = 0;
 	mth::Vector3 vector_of_tracing = point_of_touch - tmp_triangles[index_of_min].n_to_camera * (2 * (point_of_touch * tmp_triangles[index_of_min].n_to_camera));
 	vector_of_tracing /= vector_of_tracing.length();
-	for (auto source : Location::light_sources)
+	for (Light_source& source : Location::light_sources)
 	{
 		mth::Vector3 vector_of_source_ray = source.position - point_of_touch;
 		vector_of_source_ray /= vector_of_source_ray.length();
@@ -251,13 +253,14 @@ std::uint16_t Ray::get_bright_level()
 	return bright_level;
 }
 
-std::vector<Ray> Camera::rays;
+Ray* Camera::rays;
 
 // Camera
 
 void Camera::compute_rays()
 {
-	Camera::rays.clear();
+	delete[] rays;
+	rays = new Ray[Global_params::count_of_pixels];
 	mth::Matrix forward{1, 3, {1, 0, 0}};
 	for (std::uint16_t i = 0; i < Global_params::height; ++i)
 	{
@@ -270,7 +273,7 @@ void Camera::compute_rays()
 			mth::Matrix tmp_matrix = forward * z_rotate * y_rotate;
 			mth::Vector3 tmp_ray = tmp_matrix.to_vector3();
 			tmp_ray /= tmp_ray.length();
-			Camera::rays.push_back(Ray(tmp_ray));
+			rays[i * Global_params::width + j] = tmp_ray;
 		}
 	}
 }

@@ -81,6 +81,7 @@ private:
 class Ray
 {
 public:
+    Ray();
     Ray(mth::Vector3 direction);
     void compute_collisions();
     std::uint16_t get_bright_level();
@@ -103,7 +104,7 @@ public:
 
 private:
     Camera();
-    static std::vector<Ray> rays;
+    static Ray* rays;
 };
 
 class Global_params

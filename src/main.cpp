@@ -11,16 +11,16 @@
 #include <structures.h>
 #include <input.h>
 
-void compute_some_rays(std::uint64_t index_of_first_ray, std::uint64_t index_of_last_ray, bool &ready_to_word, bool &thread_ready)
+void compute_some_rays(std::uint64_t index_of_first_ray, std::uint64_t index_of_last_ray, bool& ready_to_work, bool& thread_ready)
 {
 	while (true)
 	{
-		if (ready_to_word)
+		if (ready_to_work)
 		{
 			for (std::uint64_t i = index_of_first_ray; i < index_of_last_ray; ++i)
 				Camera::rays[i].compute_collisions();
 			thread_ready = true;
-			ready_to_word = false;
+			ready_to_work = false;
 		}
 	}
 }
@@ -32,20 +32,20 @@ int main()
 	Sleep(1000);
 
 	Global_params::reinterpret_console_size();
-	std::cout << Global_params::height << '\t' << Global_params::width;
+	//std::cout << Global_params::height << '\t' << Global_params::width;
 	Camera::compute_rays();
 
 	std::thread input_thread(update_input_state);
 
 	clock_t start_time, finish_time;
-	char *display_buffer = new char[Global_params::count_of_pixels + 1];
+	char* display_buffer = new char[Global_params::count_of_pixels + 1];
 	for (std::uint32_t i = 0; i < Global_params::count_of_pixels; ++i)
 		display_buffer[i] = ' ';
 	display_buffer[Global_params::count_of_pixels] = '\0';
 	bool game_cycle = true;
 
 	std::uint32_t count_of_threads = std::thread::hardware_concurrency();
-	std::uint32_t step_of_compute = Global_params::count_of_pixels / (count_of_threads - 1);
+	std::uint32_t step_of_compute = Global_params::count_of_pixels / count_of_threads;
 	std::vector<std::thread> threads;
 
 	while (false)
@@ -58,11 +58,11 @@ int main()
 	Location::add_light_source(Light_source(mth::Vector3(-10, 0, 0), 1));
 
 	bool use_multiprocessing = true;
-	bool load = false;
+	bool load = true;
 
 	if (!load)
 	{
-		Location::add_polygon(Triangle(mth::Vector3{5, -2, 2}, mth::Vector3{5, 2, 2}, mth::Vector3{5, 1, -2}));
+		Location::add_polygon(Triangle(mth::Vector3{ 5, -2, 2 }, mth::Vector3{ 5, 2, 2 }, mth::Vector3{ 5, 1, -2 }));
 		// Location::add_polygon(Triangle(mth::Vector3{10, -2, 2}, mth::Vector3{10, -2, -2}, mth::Vector3{10, 2, -2}));
 		// Location::add_polygon(Triangle(mth::Vector3{20, 2, -2}, mth::Vector3{20, -2, -2}, mth::Vector3{20, -2, 2}));
 		// Location::add_polygon(Triangle(mth::Vector3{20, 2, -2}, mth::Vector3{20, 2, 2}, mth::Vector3{20, -2, 2}));
@@ -89,15 +89,15 @@ int main()
 			{
 				int temp;
 				sscanf_s(input.data(), "f %d//%d %d//%d %d//%d", &i1, &temp, &i2, &temp, &i3, &temp);
-				Location::add_polygon(Triangle(vector3[i1 - 1] + mth::Vector3{2, 0, 0}, vector3[i2 - 1] + mth::Vector3{2, 0, 0}, vector3[i3 - 1] + mth::Vector3{2, 0, 0}));
+				Location::add_polygon(Triangle(vector3[i1 - 1] + mth::Vector3{ 2, 0, 0 }, vector3[i2 - 1] + mth::Vector3{ 2, 0, 0 }, vector3[i3 - 1] + mth::Vector3{ 2, 0, 0 }));
 			}
 		}
 
 		in.close();
 	}
 
-	bool *thread_ready = new bool[count_of_threads];
-	bool *ready_to_work = new bool[count_of_threads];
+	bool* thread_ready = new bool[count_of_threads];
+	bool* ready_to_work = new bool[count_of_threads];
 	for (std::uint32_t i = 0; i < count_of_threads; ++i)
 	{
 		thread_ready[i] = false;
@@ -116,7 +116,7 @@ int main()
 	while (game_cycle)
 	{
 		start_time = clock();
-		SetConsoleCursorPosition(console_handle, {0, 0});
+		SetConsoleCursorPosition(console_handle, { 0, 0 });
 
 		Location::compute_polygons();
 
@@ -129,11 +129,13 @@ int main()
 			}
 			bool ready = false;
 			while (!ready)
+			{
+				ready = true;
 				for (std::uint32_t i = 0; i < count_of_threads; ++i)
 				{
-					ready = true;
 					ready &= thread_ready[i];
 				}
+			}
 		}
 		else
 			for (std::uint16_t i = 0; i < Global_params::count_of_pixels; ++i)
@@ -143,8 +145,8 @@ int main()
 
 		Camera::draw_polygons(display_buffer);
 		printf("%s", display_buffer);
-		SetConsoleCursorPosition(console_handle, {0, 0});
-		printf("%d", 1000 / (finish_time - start_time));
+		SetConsoleCursorPosition(console_handle, { 0, 0 });
+		printf("%d", 1000 / (finish_time - start_time + 1));
 	}
 
 	return 0;
