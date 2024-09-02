@@ -95,6 +95,7 @@ private:
 class Camera
 {
     friend int main();
+    friend void compute_some_rays(std::uint64_t index_of_first_ray, std::uint64_t index_of_last_ray, bool&, bool&);
 
 public:
     static void compute_rays();
