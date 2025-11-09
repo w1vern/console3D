@@ -11,7 +11,7 @@
 #include <structures.h>
 #include <input.h>
 
-void compute_some_rays(std::uint64_t index_of_first_ray, std::uint64_t index_of_last_ray, bool& ready_to_work, bool& thread_ready)
+void compute_some_rays(std::uint64_t index_of_first_ray, std::uint64_t index_of_last_ray, bool &ready_to_work, bool &thread_ready)
 {
 	while (true)
 	{
@@ -28,25 +28,21 @@ void compute_some_rays(std::uint64_t index_of_first_ray, std::uint64_t index_of_
 int main()
 {
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	clean_console(console_handle, true);
+	clean_console(console_handle, false);
 	Sleep(1000);
 
 	Global_params::reinterpret_console_size();
-	//std::cout << Global_params::height << '\t' << Global_params::width;
+	std::cout << Global_params::height << '\t' << Global_params::width;
 	Camera::compute_rays();
 
 	std::thread input_thread(update_input_state);
 
 	clock_t start_time, finish_time;
-	char* display_buffer = new char[Global_params::count_of_pixels + 1];
+	char *display_buffer = new char[Global_params::count_of_pixels + 1];
 	for (std::uint32_t i = 0; i < Global_params::count_of_pixels; ++i)
 		display_buffer[i] = ' ';
 	display_buffer[Global_params::count_of_pixels] = '\0';
 	bool game_cycle = true;
-
-	std::uint32_t count_of_threads = std::thread::hardware_concurrency();
-	std::uint32_t step_of_compute = Global_params::count_of_pixels / count_of_threads;
-	std::vector<std::thread> threads;
 
 	while (false)
 		if (GetAsyncKeyState('W') & 0x8000)
@@ -57,15 +53,15 @@ int main()
 
 	Location::add_light_source(Light_source(mth::Vector3(-10, 0, 0), 1));
 
-	bool use_multiprocessing = true;
-	bool load = true;
+	bool use_multiprocessing = false;
+	bool load = false;
 
 	if (!load)
 	{
-		Location::add_polygon(Triangle(mth::Vector3{ 5, -2, 2 }, mth::Vector3{ 5, 2, 2 }, mth::Vector3{ 5, 1, -2 }));
-		// Location::add_polygon(Triangle(mth::Vector3{10, -2, 2}, mth::Vector3{10, -2, -2}, mth::Vector3{10, 2, -2}));
-		// Location::add_polygon(Triangle(mth::Vector3{20, 2, -2}, mth::Vector3{20, -2, -2}, mth::Vector3{20, -2, 2}));
-		// Location::add_polygon(Triangle(mth::Vector3{20, 2, -2}, mth::Vector3{20, 2, 2}, mth::Vector3{20, -2, 2}));
+		Location::add_polygon(Triangle(mth::Vector3{5, -2, 2}, mth::Vector3{5, 2, 2}, mth::Vector3{5, 1, -2}));
+		//Location::add_polygon(Triangle(mth::Vector3{10, -2, 2}, mth::Vector3{10, -2, -2}, mth::Vector3{10, 2, -2}));
+		//Location::add_polygon(Triangle(mth::Vector3{20, 2, -2}, mth::Vector3{20, -2, -2}, mth::Vector3{20, -2, 2}));
+		//Location::add_polygon(Triangle(mth::Vector3{20, 2, -2}, mth::Vector3{20, 2, 2}, mth::Vector3{20, -2, 2}));
 	}
 	if (load)
 	{
@@ -74,7 +70,7 @@ int main()
 		int i1, i2, i3;
 
 		std::ifstream in;
-		in.open("resource/monkey_mega_trunc.obj");
+		in.open("resource/cylinder.obj");
 		std::vector<mth::Vector3> vector3;
 
 		for (; std::getline(in, input);)
@@ -89,15 +85,20 @@ int main()
 			{
 				int temp;
 				sscanf_s(input.data(), "f %d//%d %d//%d %d//%d", &i1, &temp, &i2, &temp, &i3, &temp);
-				Location::add_polygon(Triangle(vector3[i1 - 1] + mth::Vector3{ 2, 0, 0 }, vector3[i2 - 1] + mth::Vector3{ 2, 0, 0 }, vector3[i3 - 1] + mth::Vector3{ 2, 0, 0 }));
+				Location::add_polygon(Triangle(vector3[i1 - 1] + mth::Vector3{2, 0, 0}, vector3[i2 - 1] + mth::Vector3{2, 0, 0}, vector3[i3 - 1] + mth::Vector3{2, 0, 0}));
 			}
 		}
 
 		in.close();
 	}
 
-	bool* thread_ready = new bool[count_of_threads];
-	bool* ready_to_work = new bool[count_of_threads];
+	std::uint32_t count_of_threads = std::thread::hardware_concurrency();
+	std::uint32_t step_of_compute = Global_params::count_of_pixels / count_of_threads;
+	std::vector<std::thread> threads;
+
+	bool *thread_ready = new bool[count_of_threads];
+	bool *ready_to_work = new bool[count_of_threads];
+
 	for (std::uint32_t i = 0; i < count_of_threads; ++i)
 	{
 		thread_ready[i] = false;
@@ -116,7 +117,7 @@ int main()
 	while (game_cycle)
 	{
 		start_time = clock();
-		SetConsoleCursorPosition(console_handle, { 0, 0 });
+		SetConsoleCursorPosition(console_handle, {0, 0});
 
 		Location::compute_polygons();
 
@@ -145,7 +146,7 @@ int main()
 
 		Camera::draw_polygons(display_buffer);
 		printf("%s", display_buffer);
-		SetConsoleCursorPosition(console_handle, { 0, 0 });
+		SetConsoleCursorPosition(console_handle, {0, 0});
 		printf("%d", 1000 / (finish_time - start_time + 1));
 	}
 

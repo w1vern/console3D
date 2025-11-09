@@ -308,7 +308,7 @@ const double Global_params::fov = 103;
 const uint32_t Global_params::frame_rate = 120;
 const uint32_t Global_params::frame_time = 1000 / frame_rate;
 const double Global_params::attenuation = 0.2;
-const double Global_params::speed_of_moving = 0.05;
-const double Global_params::speed_of_rotate = 0.7;
+const double Global_params::speed_of_moving = 0.1;
+const double Global_params::speed_of_rotate = 2.0;
 
 //
